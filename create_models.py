@@ -6,6 +6,7 @@ from bambi import Model
 import arviz as az
 import os
 import matplotlib.pyplot as plt
+import cloudpickle
 
 plt.style.use("ggplot")
 
@@ -50,7 +51,8 @@ def main():
             ############################################################################
             # Save model to file and dictionary
             ############################################################################
-            idata.to_netcdf(filename=f"models/{title}_{ptype}.nc")
+            cloudpickle.dump(model, open(f"models/{title}_{ptype}_model.pkl", "wb"))
+            idata.to_netcdf(filename=f"models/{title}_{ptype}_idata.nc")
             model_dictionary[title] = idata
 
             ############################################################################
