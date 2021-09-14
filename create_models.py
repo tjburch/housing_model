@@ -1,11 +1,12 @@
 ########################################################################################
-# Load modules 
+# Load modules
 ########################################################################################
 from data_pipeline import Dataloader
 from bambi import Model
 import arviz as az
 import os
 import matplotlib.pyplot as plt
+
 plt.style.use("ggplot")
 
 ########################################################################################
@@ -13,6 +14,7 @@ plt.style.use("ggplot")
 ########################################################################################
 MODEL_DIR = "models/"
 DIAGNOSTIC_DIR = "diagnostics/"
+
 
 def main():
     # Note - have to wrap in main for multiprocess sampling on my mac
@@ -27,8 +29,8 @@ def main():
     # Create dict of model name : fomula pairs
     ####################################################################################
     formula_dictionary = {
-        "bbs_linear" : "PRICE ~ BEDS + BATHS + scale(`SQUARE FEET`)",
-        "bbs_interaction" : "PRICE ~ BEDS*BATHS + scale(`SQUARE FEET`)",
+        "bbs_linear": "PRICE ~ BEDS + BATHS + scale(`SQUARE FEET`)",
+        "bbs_interaction": "PRICE ~ BEDS*BATHS + scale(`SQUARE FEET`)",
     }
 
     ####################################################################################
@@ -39,7 +41,7 @@ def main():
         for title, formula in formula_dictionary.items():
 
             ############################################################################
-            # Create model, fit, run ppc 
+            # Create model, fit, run ppc
             ############################################################################
             model = Model(formula, df, dropna=True)
             idata = model.fit(draws=3000, chains=2)
@@ -55,27 +57,26 @@ def main():
             # Run Model-level Checking Tests
             ############################################################################
             # Create Folder if needed
-            pathway = DIAGNOSTIC_DIR + "/" + title + "_"+ ptype
+            pathway = DIAGNOSTIC_DIR + "/" + title + "_" + ptype
             if not os.path.exists(pathway):
                 os.makedirs(pathway)
 
             # Trace
             az.plot_trace(idata)
-            plt.savefig(pathway+"/trace")
+            plt.savefig(pathway + "/trace")
             plt.close()
 
             # PPCs
             az.plot_ppc(idata)
-            plt.savefig(pathway+"/ppc")
+            plt.savefig(pathway + "/ppc")
             plt.close()
 
         ############################################################################
         # Run model comparisons
         ############################################################################
-        az.plot_compare(
-            az.compare(model_dictionary)
-        )
+        az.plot_compare(az.compare(model_dictionary))
         plt.savefig(f"diagnostics/{ptype}_model_comparison")
+
 
 if __name__ in "__main__":
     main()
