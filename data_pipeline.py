@@ -23,12 +23,16 @@ class Dataloader:
         ):
 
         self.sf = self.sf.query(f"PRICE < {sf_maxprice}")
-
         self.condo = self.condo.query(f"PRICE < {sf_maxprice}")
         self.condo = self.condo.query(f"`HOA/MONTH` < {hoa_maxprice}")
-
         self.mf = self.mf.query(f"PRICE < {mf_maxprice}")
 
+        # Re-define dict
+        self.ds_dict = {
+            "sf" : self.sf,
+            "mf" : self.mf,
+            "condo" : self.condo
+        }
 
 
 def create_data():
