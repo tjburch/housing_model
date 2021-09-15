@@ -6,6 +6,8 @@ import arviz as az
 import argparse
 from data_pipeline import Dataloader
 import cloudpickle
+import matplotlib.pyplot as plt
+plt.style.use("ggplot")
 
 ########################################################################################
 # Parse Arguments
@@ -22,7 +24,7 @@ parser.add_argument(
     help="Property type (sf, mf, condo accepted)",
 )
 parser.add_argument("-l", "--listprice", type=float, required=True, help="List Price")
-parser.add_argument("-f", "--figs", type=bool, default=False, help="Save figures")
+parser.add_argument("-f", "--figs", default=False, action="store_true", help="Save figures")
 args = parser.parse_args()
 
 ########################################################################################
@@ -56,3 +58,30 @@ if predict_value - args.listprice > 0:
     print("Listing is ACCEPTED by the model as a good value")
 else:
     print("Listing is REJECTED by the model as an overpay")
+
+########################################################################################
+# Make figure for diagnostics
+########################################################################################
+fig, ax = plt.subplot_mosaic(
+    """
+    AAA
+    BCD
+    """,
+    figsize=(12,12)
+)
+
+########################################################################################
+# Make Posterior Probability Distribution for Price
+########################################################################################
+plt.sca(ax["A"])
+az.plot_kde(predict_idata.posterior["PRICE_mean"], label="Model Expectation")
+plt.axvline(args.listprice, linestyle="--", color="black", label="List Price")
+plt.xlabel("Price")
+plt.ylim(bottom=0)
+plt.legend(frameon=False, fontsize=13)
+
+
+if args.figs:
+    plt.savefig(f"projections/{args.type}_{args.beds}br_{str(args.baths).replace('.','')}bt_{round(args.sqft)}sqft.png")
+else:
+    plt.show()
