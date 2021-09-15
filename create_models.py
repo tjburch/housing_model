@@ -32,6 +32,7 @@ def main():
     formula_dictionary = {
         "bbs_linear": "PRICE ~ BEDS + BATHS + scale(`SQUARE FEET`)",
         "bbs_interaction": "PRICE ~ BEDS*BATHS + scale(`SQUARE FEET`)",
+        "condo_bbsh_linear": "PRICE ~ BEDS + BATHS + scale(`SQUARE FEET`) + scale(HOA)" ,
     }
 
     ####################################################################################
@@ -40,6 +41,11 @@ def main():
     model_dictionary = {}
     for ptype, df in datasets.ds_dict.items():
         for title, formula in formula_dictionary.items():
+
+            if "condo" in title and ptype != "condo":
+                print(ptype)
+                continue
+            
 
             ############################################################################
             # Create model, fit, run ppc
@@ -76,9 +82,12 @@ def main():
         ############################################################################
         # Run model comparisons
         ############################################################################
-        az.plot_compare(az.compare(model_dictionary))
-        plt.savefig(f"diagnostics/{ptype}_model_comparison")
-
+        if len(model_dictionary) > 1:
+            az.plot_compare(az.compare(model_dictionary))
+            plt.savefig(f"diagnostics/{ptype}_model_comparison")
+        else:
+            print(f"Less than 2 models fit for property type,: {ptype}")
+            print(f"Model comparisons not run!")
 
 if __name__ in "__main__":
     main()
