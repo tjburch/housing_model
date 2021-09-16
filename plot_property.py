@@ -24,14 +24,20 @@ parser.add_argument(
     help="Property type (sf, mf, condo accepted)",
 )
 parser.add_argument("-l", "--listprice", type=float, required=True, help="List Price")
+parser.add_argument("--hoa", type=float, required=False, help="HOA fees")
 parser.add_argument("-f", "--figs", default=False, action="store_true", help="Save figures")
 args = parser.parse_args()
 
 ########################################################################################
 # Load associated inferencedata and model
 ########################################################################################
-model = cloudpickle.load(open(f"models/bbs_linear_{args.type}_model.pkl", "rb"))
-idata = az.from_netcdf(f"models/bbs_linear_{args.type}_idata.nc")
+if not args.hoa:
+    model = cloudpickle.load(open(f"models/bbs_linear_{args.type}_model.pkl", "rb"))
+    idata = az.from_netcdf(f"models/bbs_linear_{args.type}_idata.nc")
+else:
+    model = cloudpickle.load(open(f"models/condo_bbsh_linear_{args.type}_model.pkl", "rb"))
+    idata = az.from_netcdf(f"models/condo_bbsh_linear_{args.type}_idata.nc")
+
 
 ########################################################################################
 # Create Data for Given Property and predict
@@ -39,6 +45,9 @@ idata = az.from_netcdf(f"models/bbs_linear_{args.type}_idata.nc")
 check_data = pd.DataFrame(
     {"SQUARE FEET": args.sqft, "BEDS": args.beds, "BATHS": args.baths}, index=[1]
 )
+if args.hoa:
+    check_data["HOA"] = args.hoa
+
 predict_idata = model.predict(idata, data=check_data, inplace=False)
 predict_value = predict_idata.posterior["PRICE_mean"].mean().round(2).values
 price_posterior_values = predict_idata.posterior["PRICE_mean"].values.flatten()
